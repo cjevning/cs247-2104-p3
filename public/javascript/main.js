@@ -36,6 +36,9 @@
     });
     fb_instance_stream.on("child_added",function(snapshot){
       display_msg(snapshot.val());
+      if (snapshot.val().r == true) {
+        captureVideos();
+      }
     });
 
     // block until username is answered
@@ -49,19 +52,44 @@
     // bind submission box
     $("#submission input").keydown(function( event ) {
       if (event.which == 13) {
-        if(has_emotions($(this).val())){
-          fb_instance_stream.push({m:username+": " +$(this).val(), v:cur_video_blob, c: my_color});
-        }else{
-          fb_instance_stream.push({m:username+": " +$(this).val(), c: my_color});
+        var checkBoxVal = $('#reaction').prop('checked');
+        if (checkBoxVal) {
+          //if(has_emotions($(this).val())){
+          // fb_instance_stream.push({m:username+": " +$(this).val(), v:cur_video_blob, c: my_color});
+         fb_instance_stream.push({m:username+": " +$(this).val(), r:true, c: my_color});
+        }
+        else{
+          fb_instance_stream.push({m:username+": " +$(this).val(), r:false, c: my_color});
         }
         $(this).val("");
       }
     });
   }
 
+  function captureVideos() {
+    console.log("cap");
+    var video = document.createElement("video");
+      video.autoplay = true;
+      video.controls = false; // optional
+      video.loop = true;
+      video.width = 120;
+    var source = document.createElement("source");
+      source.src =  URL.createObjectURL(base64_to_blob(cur_video_blob));
+      source.type =  "video/webm";
+
+      video.appendChild(source);
+      document.getElementById("conversation").appendChild(video);
+    
+    scroll_to_bottom(0);
+  }
+
   // creates a message node and appends it to the conversation
   function display_msg(data){
+    
     $("#conversation").append("<div class='msg' style='color:"+data.c+"'>"+data.m+"</div>");
+    
+      
+    
     if(data.v){
       // for video element
       var video = document.createElement("video");
