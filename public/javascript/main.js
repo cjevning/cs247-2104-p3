@@ -46,7 +46,7 @@
     fb_instance_stream.on("child_added",function(snapshot){
       if (snapshot.val().r == false) display_msg(snapshot.val());
       else {
-        if (snapshot.val().u != username) window.setTimeout(function(){captureVideos(username, my_color)},3000);
+        if (snapshot.val().u != username) window.setTimeout(function(){captureVideos(username, my_color)},4499);
       }
     });
 
