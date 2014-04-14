@@ -22,7 +22,7 @@ a {
   z-index: 999;
 }
 #conversation {
-  padding: 10px 10px 80px;
+  padding: 10px 10px 100px;
   overflow-y: scroll;
   height: 100%;
 }

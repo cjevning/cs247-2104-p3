@@ -27,60 +27,48 @@
     // set up variables to access firebase data structure
     var fb_new_chat_room = fb_instance.child('chatrooms').child(fb_chat_room_id);
     var fb_instance_users = fb_new_chat_room.child('users');
-    var fb_instance_stream = fb_new_chat_room.child('stream');
+    fb_instance_stream = fb_new_chat_room.child('stream');
     var my_color = "#"+((1<<24)*Math.random()|0).toString(16);
+
+    var username = window.prompt("Welcome, warrior! please declare your name?");
+    if(!username){
+      username = "anonymous"+Math.floor(Math.random()*1111);
+    }
+    // block until username is answered
+    
+    fb_instance_users.push({ name: username,c: my_color});
+    $("#waiting").remove();
 
     // listen to events
     fb_instance_users.on("child_added",function(snapshot){
       display_msg({m:snapshot.val().name+" joined the room",c: snapshot.val().c});
     });
     fb_instance_stream.on("child_added",function(snapshot){
-      display_msg(snapshot.val());
-      if (snapshot.val().r == true) {
-        captureVideos();
+      if (snapshot.val().r == false) display_msg(snapshot.val());
+      else {
+        if (snapshot.val().u != username) captureVideos(username, my_color);
       }
     });
 
-    // block until username is answered
-    var username = window.prompt("Welcome, warrior! please declare your name?");
-    if(!username){
-      username = "anonymous"+Math.floor(Math.random()*1111);
-    }
-    fb_instance_users.push({ name: username,c: my_color});
-    $("#waiting").remove();
+    
 
     // bind submission box
     $("#submission input").keydown(function( event ) {
       if (event.which == 13) {
         var checkBoxVal = $('#reaction').prop('checked');
+        fb_instance_stream.push({m:username+": " +$(this).val(), r:false, c: my_color});
         if (checkBoxVal) {
           //if(has_emotions($(this).val())){
-          fb_instance_stream.push({m:username+": " +$(this).val(), v:cur_video_blob, c: my_color});
-        // fb_instance_stream.push({m:username+": " +$(this).val(), r:true, c: my_color});
-        }
-        else{
-          fb_instance_stream.push({m:username+": " +$(this).val(), r:false, c: my_color});
+          //fb_instance_stream.push({m:username+": " +$(this).val(), v:cur_video_blob, c: my_color});
+          fb_instance_stream.push({m: "", r:true, u:username})
         }
         $(this).val("");
       }
     });
   }
 
-  function captureVideos() {
-    console.log("cap");
-    var video = document.createElement("video");
-      video.autoplay = true;
-      video.controls = false; // optional
-      video.loop = true;
-      video.width = 120;
-    var source = document.createElement("source");
-      source.src =  URL.createObjectURL(base64_to_blob(cur_video_blob));
-      source.type =  "video/webm";
-
-      video.appendChild(source);
-      document.getElementById("conversation").appendChild(video);
-    
-    scroll_to_bottom(0);
+  function captureVideos(u, col) {
+    if (cur_video_blob != null) fb_instance_stream.push({m:u+": ", v:cur_video_blob, c: col, r:false});
   }
 
   // creates a message node and appends it to the conversation
